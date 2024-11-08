@@ -1,0 +1,11 @@
+{
+    "name": "cars-ecommerce",
+    "version": "1.0.0",
+    "description": "Taining project",
+    "main": "server.js",
+    "scripts": {
+        "start": "nodemon server.js"
+    },
+    "author": "Mohanad Abu Sabha",
+    "license": "ISC"
+}
