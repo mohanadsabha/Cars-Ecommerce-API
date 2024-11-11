@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Please tell us your name'],
+        required: [true, 'Please tell us your name!'],
     },
     email: {
         type: String,
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     photo: String,
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'guide', 'lead-guide', 'admin'],
         default: 'user',
     },
     password: {
@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false,
+    },
 });
 
 userSchema.pre('save', async function (next) {
@@ -50,6 +55,11 @@ userSchema.pre('save', async function (next) {
     if (!this.isNew) {
         this.passwordChangedAt = Date.now() - 1000;
     }
+    next();
+});
+
+userSchema.pre(/^find/, function (next) {
+    this.find({ active: { $ne: false } });
     next();
 });
 

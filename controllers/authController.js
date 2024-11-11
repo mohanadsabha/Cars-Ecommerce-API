@@ -11,6 +11,17 @@ const signToken = (id) =>
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
+const createSendToken = (user, statusCode, res) => {
+    const token = signToken(user._id);
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: {
+            user,
+        },
+    });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
     const newUser = await User.create({
         name: req.body.name,
@@ -19,14 +30,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         passwordConfirm: req.body.passwordConfirm,
         role: req.body.role,
     });
-    const token = signToken(newUser._id);
-    res.status(201).json({
-        status: 'success',
-        token,
-        data: {
-            user: newUser,
-        },
-    });
+    createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -39,17 +43,13 @@ exports.login = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await user.comparePassword(password, user.password))) {
-        // TO FIX IT LATER
+        // debug
         const Errrrr = new AppError('Invalid email or password!', 401);
         console.log(Errrrr.message, '////');
         return next(Errrrr);
     }
 
-    const token = signToken(user._id);
-    res.status(200).json({
-        status: 'success',
-        token,
-    });
+    createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -116,8 +116,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     const resetURL = `${req.protocol}://${req.get(
         'host'
     )}/api/v1/users/resetPassword/${resetToken}`;
-    const message = `Forgot your password? Submit a request with your new password to: ${resetURL} .
-    \nIf you didn't forget your password, please ignore this email`;
+    const message = `Forgot your password? Submit a request with your new password to: ${resetURL} .\nIf you didn't forget your password, please ignore this email`;
 
     try {
         await sendEmail({
@@ -164,12 +163,23 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     user.passwordResetExpires = undefined;
     await user.save();
 
-    // Update the passwordChangedAt for the user
-
     // log the user in, send jwt
-    const token = signToken(user._id);
-    res.status(200).json({
-        status: 'success',
-        token,
-    });
+    createSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('+password');
+    // Check for the POSTed password
+    if (
+        !(await user.comparePassword(req.body.passwordCurrent, user.password))
+    ) {
+        return next(new AppError('Your current password is wrong', 401));
+    }
+    // Update Password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+
+    // Log the user in, Send JWT
+    createSendToken(user, 200, res);
 });
