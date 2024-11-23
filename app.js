@@ -2,13 +2,14 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sabitize');
+const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const AppError = require('./utils/appError');
 const globalEerrorHandler = require('./controllers/errorController');
 const userRouter = require('./routers/userRoutes');
 const carRouter = require('./routers/carRouter');
+const contactRouter = require('./routers/contactRouter');
 
 const app = express();
 const limiter = rateLimit({
@@ -30,8 +31,9 @@ app.use(xss());
 app.use(hpp());
 
 // Routes
-app.use('/api/v1/tours', carRouter);
+app.use('/api/v1/cars', carRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/contact', contactRouter);
 
 // Unhandeld routes
 app.all('*', (req, res, next) => {
