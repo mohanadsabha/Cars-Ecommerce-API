@@ -7,7 +7,8 @@ const router = express.Router();
 
 router.route('/').post(
     catchAsync(async (req, res, next) => {
-        if (!req.body.email || !req.body.name || !req.body.message) {
+        const { name, email, message } = req.body;
+        if (!name || !email || !message) {
             return next(
                 new AppError(
                     'Missing required fields: email, name, or message',
@@ -16,13 +17,16 @@ router.route('/').post(
             );
         }
         await sendEmail({
-            from: req.body.email,
-            subject: 'Conact Form',
+            from: email,
+            subject: 'Conact Form Cars Website!',
             html: `
-        <p><strong>Name:</strong> ${req.body.name}.</p>
-         <p><strong>Email:</strong> ${req.body.email}.</p>
-        <p><strong>Message:</strong> ${req.body.message}.</p>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong> ${message}</p>
         `,
+        });
+        res.status(200).json({
+            status: 'success',
         });
     })
 );

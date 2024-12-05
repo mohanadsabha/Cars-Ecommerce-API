@@ -4,6 +4,8 @@ const authContoller = require('../controllers/authController');
 
 const router = express.Router();
 
+router.use('/:carId/reviews', reviewRouter);
+
 router
     .route('/')
     .get(carController.getAllCars)
@@ -27,14 +29,10 @@ router
     );
 
 /*
-// aliasing
 router
     .route('/top-5-cars')
     .get(carController.aliasTopCars, carController.getAllCars);
-
-// aggregation pipeline
-router.route('/tour-stats').get(carController.getCarStats);
-router.route('/monthly-plan/:year').get(carController.getMonthlyPlan);
+router.route('/car-stats').get(carController.getCarStats);
 */
 
 module.exports = router;
